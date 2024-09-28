@@ -93,8 +93,7 @@ defmodule BlueskyEx.Client.RecordManager do
   def create_follow(session, did: did),
     do:
       fetch_data(:create_follow, session,
-        body:
-          build_create_body(session, "app.bsky.graph.follow", %{subject: %{did: did}})
+        body: build_create_body(session, "app.bsky.graph.follow", %{subject: %{did: did}})
       )
 
   @spec delete_follow(Session.t(), String.t()) :: Response.t()
@@ -104,16 +103,29 @@ defmodule BlueskyEx.Client.RecordManager do
         body: build_delete_body(session, "app.bsky.graph.follow", rkey)
       )
 
+  @spec get_feed(Session.t() | nil,
+          feed: String.t(),
+          limit: non_neg_integer(),
+          cursor: String.t() | nil
+        ) :: Response.t()
+  def get_feed(session \\ nil, feed, limit \\ 50, cursor \\ nil) do
+    fetch_data(:get_feed, session, query: %{feed: feed, limit: limit, cursor: cursor})
+  end
 
   @typep fetch_options :: [
            {:body, String.t()}
            | {:query, RequestUtils.URI.query_params()}
          ]
-  @spec fetch_data(atom(), Session.t(), fetch_options) :: Response.t()
-  defp fetch_data(request_type, %Session{pds: pds} = session, options \\ []) do
+  @spec fetch_data(atom(), Session.t() | nil, fetch_options) :: Response.t()
+  defp fetch_data(request_type, session \\ nil, options \\ []) do
+    pds = if session, do: session.pds, else: nil
     query = options[:query]
     body = options[:body]
-    args = [pds | if(query != nil, do: [query], else: [])]
+
+    args =
+      [if(pds != nil, do: [pds], else: []) | if(query != nil, do: [query], else: [])]
+      |> List.flatten()
+
     uri = apply(RequestUtils.URI, request_type, args)
     RequestUtils.make_request(uri, body: body, session: session)
   end

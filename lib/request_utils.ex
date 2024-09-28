@@ -55,6 +55,10 @@ defmodule BlueskyEx.Client.RequestUtils do
     build_uri(:get_popular, "app.bsky.unspecced.getPopular", [:pds, :query])
     build_uri(:get_profile, "app.bsky.actor.getProfile", [:pds, :query])
     build_uri(:get_timeline, "app.bsky.feed.getTimeline", [:pds, :query])
+    # build_uri(:get_feed, "app.bsky.feed.getFeed", [:pds, :query])
+    def get_feed(pds \\ "https://public.api.bsky.app", query) do
+      build_base_uri(pds, "app.bsky.feed.getFeed") <> query_obj_to_query_params(query)
+    end
 
     # POST
     build_uri(:create_record, "com.atproto.repo.createRecord", [:pds])
